@@ -1,0 +1,9 @@
+target/
+
+*.log
+catilina.*
+
+.classpath
+.project
+.settings/
+*.class

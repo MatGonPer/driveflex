@@ -1,0 +1,72 @@
+services:
+  traefik:
+    image: traefik:latest
+    container_name: driveflex-traefik
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    group_add:
+      - "952"
+    environment:
+      - DOCKER_API_VERSION=1.44
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - DOCKER_CLIENT_TIMEOUT=120
+      - DOCKER_BUILDKIT=1
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+  backend:
+    image: driveflex-backend:latest
+    container_name: driveflex-backend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.driveflex-api.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.driveflex-api.entrypoints=web"
+      - "traefik.http.services.driveflex-api.loadbalancer.server.port=8081"
+      - "traefik.docker.network=driveflex-network"
+
+  postgres-master:
+    image: bitnami/postgresql:latest
+    container_name: driveflex-db-master
+    environment:
+      - POSTGRESQL_REPLICATION_MODE=master
+      - POSTGRESQL_REPLICATION_USER=repl_user
+      - POSTGRESQL_REPLICATION_PASSWORD=repl_senha
+      - POSTGRESQL_USERNAME=admin
+      - POSTGRESQL_PASSWORD=senha_super_segura
+      - POSTGRESQL_DATABASE=driveflex
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_master_data:/bitnami/postgresql
+
+  postgres-slave:
+    image: bitnami/postgresql:latest
+    container_name: driveflex-db-slave
+    depends_on:
+      - postgres-master
+    environment:
+      - POSTGRESQL_REPLICATION_MODE=slave
+      - POSTGRESQL_MASTER_HOST=postgres-master
+      - POSTGRESQL_MASTER_PORT_NUMBER=5432
+      - POSTGRESQL_MASTER_ROOT_USER=admin
+      - POSTGRESQL_MASTER_ROOT_PASSWORD=senha_super_segura
+      - POSTGRESQL_REPLICATION_USER=repl_user
+      - POSTGRESQL_REPLICATION_PASSWORD=repl_senha
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_slave_data:/bitnami/postgresql
+
+networks:
+  default:
+    name: driveflex-network
+
+volumes:
+  postgres_master_data:
+  postgres_slave_data:
