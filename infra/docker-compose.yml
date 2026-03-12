@@ -21,6 +21,9 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
 
   backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
     image: driveflex-backend:latest
     container_name: driveflex-backend
     labels:
