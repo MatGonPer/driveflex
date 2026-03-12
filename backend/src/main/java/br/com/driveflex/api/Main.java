@@ -27,6 +27,7 @@ public class Main {
         
         // Esta linha PRECISA estar aqui para o cadastro funcionar:
         server.createContext("/auth/register", new RegisterHandler());
+        server.createContext("/auth/login", new LoginHandler());
 
         server.setExecutor(null);
         server.start();

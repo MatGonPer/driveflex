@@ -6,3 +6,11 @@
 .DS_Store
 
 *.log
+
+# Java/Maven
+target/
+*.class
+
+# Docker/Temporary
+infra/[0-9a-f]*
+infra/Using
