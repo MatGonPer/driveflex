@@ -23,6 +23,8 @@ services:
   backend:
     image: driveflex-backend:latest
     container_name: driveflex-backend
+    ports:
+      - "8081:8081"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.driveflex-api.rule=PathPrefix(`/`)"
