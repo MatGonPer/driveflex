@@ -1,8 +1,8 @@
 import axios from 'axios';
 
 const api = axios.create({
-  //baseURL: 'http://192.168.100.8:8081',
-  baseURL: 'http://10.0.2.2:8081',
+  // Substitua o 192.168.X.X pelo IP que apareceu no seu ipconfig
+  baseURL: 'http://192.168.X.X', 
   timeout: 5000,
   headers: {
     'Content-Type': 'application/json',

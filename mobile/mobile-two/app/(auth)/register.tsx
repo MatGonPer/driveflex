@@ -67,6 +67,9 @@ export default function RegistroScreen() {
     } catch (error: any) {
       console.log('Erro no registro:', error.response?.data);
       Alert.alert('Erro', 'Não foi possível realizar o cadastro.');
+      const detalhe = error.response?.data?.message || error.message || 'Erro de conexão com o servidor';
+      console.log('Erro no registro:', error.response?.data || error);
+      Alert.alert('Erro', `Não foi possível realizar o cadastro.\n\nMotivo: ${detalhe}`);
     } finally {
       setLoading(false);
     }
