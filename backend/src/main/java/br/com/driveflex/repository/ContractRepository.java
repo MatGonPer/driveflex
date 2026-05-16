@@ -5,6 +5,8 @@ import br.com.driveflex.model.Contract;
 
 import java.sql.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -86,5 +88,43 @@ public class ContractRepository {
             throw new RuntimeException("Erro ao buscar contrato por ID", e);
         }
         return Optional.empty();
+    }
+
+    /**
+     * Busca todos os contratos pendentes para um motorista específico.
+     * @param driverId O ID do motorista.
+     * @return Lista de contratos com status 'PENDING'.
+     */
+    public List<Contract> findPendingByDriverId(UUID driverId) {
+        String sql = "SELECT * FROM contracts WHERE driver_id = ? AND status = 'PENDING';";
+        List<Contract> contracts = new ArrayList<>();
+
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setObject(1, driverId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Contract contract = new Contract();
+                    contract.setId((UUID) rs.getObject("id"));
+                    contract.setClientId((UUID) rs.getObject("client_id"));
+                    contract.setDriverId((UUID) rs.getObject("driver_id"));
+                    contract.setStatus(rs.getString("status"));
+                    contract.setStartTime(rs.getTimestamp("start_time").toLocalDateTime());
+                    
+                    Timestamp endTimeStamp = rs.getTimestamp("end_time");
+                    contract.setEndTime(endTimeStamp != null ? endTimeStamp.toLocalDateTime() : null);
+                    
+                    contract.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+                    contract.setUpdatedAt(rs.getTimestamp("updated_at").toLocalDateTime());
+
+                    contracts.add(contract);
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao buscar contratos pendentes do motorista", e);
+        }
+        return contracts;
     }
 }
