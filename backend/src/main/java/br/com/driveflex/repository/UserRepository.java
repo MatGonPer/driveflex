@@ -80,4 +80,95 @@ public class UserRepository {
         }
         return Optional.empty();
     }
+
+    /**
+     * Busca um usuário pelo ID. Essencial para validação em handlers.
+     * @param id O ID do usuário.
+     * @return Optional contendo o usuário, se encontrado.
+     */
+    public Optional<User> findById(UUID id) {
+        String sql = "SELECT * FROM users WHERE id = ?;";
+
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setObject(1, id); // PostgreSQL aceita UUID via setObject
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    User user = new User();
+                    user.setId((UUID) rs.getObject("id"));
+                    user.setFirstName(rs.getString("first_name"));
+                    user.setLastName(rs.getString("last_name"));
+                    user.setEmail(rs.getString("email"));
+                    user.setPasswordHash(rs.getString("password_hash"));
+                    user.setBirthDate(rs.getDate("birth_date").toLocalDate());
+                    user.setRole(rs.getString("role"));
+                    user.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+
+                    return Optional.of(user);
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao buscar usuário por ID", e);
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Busca todos os usuários no banco de dados.
+     * @return Uma lista de todos os usuários.
+     */
+    public java.util.List<User> findAll() {
+        java.util.List<User> users = new java.util.ArrayList<>();
+        String sql = "SELECT * FROM users;";
+
+        try (Connection conn = DatabaseConfig.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                User user = new User();
+                user.setId((UUID) rs.getObject("id"));
+                user.setFirstName(rs.getString("first_name"));
+                user.setLastName(rs.getString("last_name"));
+                user.setEmail(rs.getString("email"));
+                user.setPasswordHash(rs.getString("password_hash")); // Não ideal em produção, mas ok para dev
+                user.setBirthDate(rs.getDate("birth_date").toLocalDate());
+                user.setRole(rs.getString("role"));
+                user.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+                users.add(user);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao buscar todos os usuários", e);
+        }
+        return users;
+    }
+
+    /**
+     * Deleta um usuário do banco de dados pelo ID.
+     * @param id O ID do usuário a ser deletado.
+     * @return true se o usuário foi deletado com sucesso, false caso contrário.
+     */
+    public boolean deleteById(UUID id) {
+        String sql = "DELETE FROM users WHERE id = ?;";
+
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setObject(1, id);
+            int rowsAffected = stmt.executeUpdate();
+            
+            if (rowsAffected > 0) {
+                System.out.println("[UserRepository] Usuário deletado com sucesso: " + id);
+                return true;
+            } else {
+                System.out.println("[UserRepository] Nenhum usuário encontrado com o ID: " + id);
+                return false;
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao deletar usuário por ID", e);
+        }
+    }
 }

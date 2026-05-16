@@ -52,7 +52,15 @@ public class RegisterHandler implements HttpHandler {
             newUser.setPasswordHash(PasswordUtils.hashPassword(rawPassword));
 
             newUser.setBirthDate(LocalDate.parse(json.get("birthDate").getAsString()));
-            newUser.setRole("USER"); // Todo cadastro novo começa como Usuário Comum
+            
+            String role = "USER"; // Default role
+            if (json.has("role") && !json.get("role").isJsonNull()) {
+                String requestedRole = json.get("role").getAsString().toUpperCase();
+                if (requestedRole.equals("USER") || requestedRole.equals("DRIVER")) {
+                    role = requestedRole;
+                }
+            }
+            newUser.setRole(role); // Set the determined role
             newUser.setCreatedAt(LocalDateTime.now());
 
             // 4. Persistir no Banco de Dados via Repositório
