@@ -61,9 +61,14 @@ export default function RegistroScreen() {
         birthDate: formatarData(dataNascimento),
       });
 
-      Alert.alert('Sucesso', 'Conta criada com sucesso!', [
-        {text: 'OK', onPress: () => router.replace('/(auth)/login')},
-      ]);
+      if (Platform.OS === 'web') {
+        window.alert('Conta criada com sucesso!');
+        router.replace('/(auth)/login');
+      } else {
+        Alert.alert('Sucesso', 'Conta criada com sucesso!', [
+          {text: 'OK', onPress: () => router.replace('/(auth)/login')},
+        ]);
+      }
     } catch (error: any) {
       console.log('Erro no registro:', error.response?.data);
       Alert.alert('Erro', 'Não foi possível realizar o cadastro.');

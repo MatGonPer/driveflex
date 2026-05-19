@@ -101,9 +101,14 @@ export default function RegisterMotoristaScreen() {
         role: 'DRIVER',
       });
 
-      Alert.alert('Sucesso', 'Conta de motorista criada com sucesso!', [
-        {text: 'OK', onPress: () => router.replace('/(auth)/login-motorista')},
-      ]);
+      if (Platform.OS === 'web') {
+        window.alert('Conta de motorista criada com sucesso!');
+        router.replace('/(auth)/login-motorista');
+      } else {
+        Alert.alert('Sucesso', 'Conta de motorista criada com sucesso!', [
+          {text: 'OK', onPress: () => router.replace('/(auth)/login-motorista')},
+        ]);
+      }
     } catch (error: any) {
       console.log('Erro no registro:', error.response?.data);
       Alert.alert('Erro', 'Não foi possível realizar o cadastro.');

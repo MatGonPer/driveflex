@@ -32,6 +32,12 @@ services:
       - "traefik.http.routers.driveflex-api.entrypoints=web"
       - "traefik.http.services.driveflex-api.loadbalancer.server.port=8081"
       - "traefik.docker.network=driveflex-network"
+      - "traefik.http.middlewares.cors.headers.accesscontrolallowmethods=GET,OPTIONS,PUT,POST,DELETE"
+      - "traefik.http.middlewares.cors.headers.accesscontrolallowheaders=*"
+      - "traefik.http.middlewares.cors.headers.accesscontrolalloworiginlist=*"
+      - "traefik.http.middlewares.cors.headers.accesscontrolmaxage=100"
+      - "traefik.http.middlewares.cors.headers.addvaryheader=true"
+      - "traefik.http.routers.driveflex-api.middlewares=cors"
 
   postgres-master:
     image: bitnami/postgresql:latest

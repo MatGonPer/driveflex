@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
+  Platform,
 } from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
 import {SafeAreaView} from 'react-native-safe-area-context';
@@ -28,17 +29,23 @@ export default function ProfileScreen() {
   }, []);
 
   const handleLogout = async () => {
-    Alert.alert('Sair', 'Deseja realmente sair da conta?', [
-      {text: 'Cancelar', style: 'cancel'},
-      {
-        text: 'Sair',
-        style: 'destructive',
-        onPress: async () => {
-          await AsyncStorage.clear();
-          router.replace('/(auth)/login');
+    if (Platform.OS === 'web') {
+      if (window.confirm('Deseja realmente sair da conta?')) {
+        AsyncStorage.clear().then(() => router.replace('/(auth)/login'));
+      }
+    } else {
+      Alert.alert('Sair', 'Deseja realmente sair da conta?', [
+        {text: 'Cancelar', style: 'cancel'},
+        {
+          text: 'Sair',
+          style: 'destructive',
+          onPress: async () => {
+            await AsyncStorage.clear();
+            router.replace('/(auth)/login');
+          },
         },
-      },
-    ]);
+      ]);
+    }
   };
 
   const isDriver = role === 'DRIVER';
