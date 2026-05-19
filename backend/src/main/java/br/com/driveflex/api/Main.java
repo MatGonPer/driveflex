@@ -28,12 +28,21 @@ public class Main {
         // Esta linha PRECISA estar aqui para o cadastro funcionar:
         server.createContext("/auth/register", new RegisterHandler());
         server.createContext("/auth/login", new LoginHandler());
+        server.createContext("/api/contracts/hire", new HireDriverHandler());
+        server.createContext("/api/users", new UserListHandler());
+        // For DELETE /api/users/{id}, the context path needs to be just /api/users
+        // The handler itself will parse the {id} from the request URI
+        server.createContext("/api/users/", new UserDeleteHandler()); 
 
         server.setExecutor(null);
         server.start();
 
         System.out.println("[INFO] Servidor rodando na porta 8081.");
         System.out.println("[INFO] Rota registrada: /auth/register");
+        System.out.println("[INFO] Rota registrada: /auth/login");
+        System.out.println("[INFO] Rota registrada: /api/contracts/hire");
+        System.out.println("[INFO] Rota registrada: GET /api/users (List all users)");
+        System.out.println("[INFO] Rota registrada: DELETE /api/users/{id} (Delete user)");
         System.out.println("[INFO] Pronto para receber conexões.");
 
         // Mantém o processo vivo no Docker

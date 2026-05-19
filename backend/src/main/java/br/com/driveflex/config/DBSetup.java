@@ -11,7 +11,7 @@ public class DBSetup {
      */
     public static void init() {
         int tentativas = 0;
-        int maxTentativas = 10;
+        int maxTentativas = 20; // Aumentado para dar mais tempo ao banco
 
         while (tentativas < maxTentativas) {
             try (Connection conn = DatabaseConfig.getConnection()) {
@@ -22,8 +22,8 @@ public class DBSetup {
                 tentativas++;
                 System.out.println("[DBSetup] Banco ainda não está pronto (" + tentativas + "/" + maxTentativas + ")...");
                 try {
-                    // Espera 3 segundos antes de tentar de novo
-                    Thread.sleep(3000);
+                    // Espera 5 segundos antes de tentar de novo
+                    Thread.sleep(5000);
                 } catch (InterruptedException ignored) {}
             }
         }
@@ -56,10 +56,26 @@ public class DBSetup {
             );
             """;
 
+        String sqlContracts = """
+            CREATE TABLE IF NOT EXISTS contracts (
+                id UUID PRIMARY KEY,
+                client_id UUID NOT NULL,
+                driver_id UUID NOT NULL,
+                status VARCHAR(50) NOT NULL,
+                start_time TIMESTAMP NOT NULL,
+                end_time TIMESTAMP,
+                created_at TIMESTAMP DEFAULT NOW(),
+                updated_at TIMESTAMP DEFAULT NOW(),
+                CONSTRAINT fk_client FOREIGN KEY (client_id) REFERENCES users(id) ON DELETE CASCADE,
+                CONSTRAINT fk_driver FOREIGN KEY (driver_id) REFERENCES users(id) ON DELETE CASCADE
+            );
+            """;
+
         try (Statement stmt = conn.createStatement()) {
             System.out.println("[DBSetup] Verificando e criando tabelas...");
             stmt.execute(sqlUsers);
             stmt.execute(sqlDrivers);
+            stmt.execute(sqlContracts);
             System.out.println("[DBSetup] Estrutura de banco de dados pronta.");
         }
     }
