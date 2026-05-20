@@ -60,7 +60,11 @@ public class DBSetup {
             CREATE TABLE IF NOT EXISTS contracts (
                 id UUID PRIMARY KEY,
                 client_id UUID NOT NULL,
-                driver_id UUID NOT NULL,
+                driver_id UUID,
+                vehicle_category VARCHAR(20) NOT NULL,
+                origin VARCHAR(255) NOT NULL,
+                destination VARCHAR(255) NOT NULL,
+                passenger_name VARCHAR(100) NOT NULL,
                 status VARCHAR(50) NOT NULL,
                 start_time TIMESTAMP NOT NULL,
                 end_time TIMESTAMP,

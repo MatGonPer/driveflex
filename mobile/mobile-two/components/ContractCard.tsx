@@ -11,7 +11,9 @@ function formatTimestamp(value: string | null) {
     return 'Não definido';
   }
 
-  const date = new Date(value);
+  // Adiciona o Z no final caso o backend não envie, para garantir que o JS entenda que é UTC.
+  const dateStr = value.endsWith('Z') ? value : `${value}Z`;
+  const date = new Date(dateStr);
   if (Number.isNaN(date.getTime())) {
     return value;
   }
@@ -29,36 +31,59 @@ function shortId(id: string) {
   return id.length > 10 ? `${id.slice(0, 8)}…${id.slice(-6)}` : id;
 }
 
-export function ContractCard({ contract }: { contract: Contract }) {
+export function ContractCard({ contract, onEdit, onDelete }: { contract: Contract; onEdit?: () => void; onDelete?: () => void }) {
   const theme = useColorScheme() ?? 'light';
   const borderColor = theme === 'light' ? '#d0e6f1' : '#2f414f';
   const statusColor = theme === 'light' ? Colors.light.tint : Colors.dark.tint;
+
+  // Tradução do status
+  const displayStatus = contract.status === 'PENDING' ? 'Pendente' : contract.status;
 
   return (
     <ThemedView style={[styles.card, { borderColor }]}> 
       <View style={styles.header}>
         <ThemedText type="defaultSemiBold" style={[styles.status, { color: statusColor }]}>
-          {contract.status}
+          {displayStatus.toUpperCase()}
         </ThemedText>
         <ThemedText type="subtitle" style={styles.subtitle}>
-          {formatTimestamp(contract.startTime)}
-          {' \u2014 '}
-          {contract.endTime ? formatTimestamp(contract.endTime) : 'Em aberto'}
+          Ida: {formatTimestamp(contract.startTime)}
+          {contract.endTime ? ` \u2014 Volta: ${formatTimestamp(contract.endTime)}` : ''}
         </ThemedText>
+      </View>
+
+      <View style={styles.row}>
+        <ThemedText type="defaultSemiBold" style={styles.label}>
+          Categoria
+        </ThemedText>
+        <ThemedText>{contract.vehicleCategory === 'car' ? 'carro' : contract.vehicleCategory || 'Não definida'}</ThemedText>
+      </View>
+
+      <View style={styles.row}>
+        <ThemedText type="defaultSemiBold" style={styles.label}>
+          Passageiro
+        </ThemedText>
+        <ThemedText>{contract.passengerName || 'N/A'}</ThemedText>
+      </View>
+
+      <View style={styles.row}>
+        <ThemedText type="defaultSemiBold" style={styles.label}>
+          Trajeto
+        </ThemedText>
+        <ThemedText style={styles.routeText} numberOfLines={1}>{contract.origin} ➔ {contract.destination}</ThemedText>
       </View>
 
       <View style={styles.row}>
         <ThemedText type="defaultSemiBold" style={styles.label}>
           Cliente
         </ThemedText>
-        <ThemedText>{shortId(contract.clientId)}</ThemedText>
+        <ThemedText>{contract.clientName || shortId(contract.clientId)}</ThemedText>
       </View>
 
       <View style={styles.row}>
         <ThemedText type="defaultSemiBold" style={styles.label}>
           Motorista
         </ThemedText>
-        <ThemedText>{shortId(contract.driverId)}</ThemedText>
+        <ThemedText>{contract.driverName || (contract.driverId ? shortId(contract.driverId) : 'Aguardando aceite...')}</ThemedText>
       </View>
 
       <View style={styles.row}>
@@ -67,9 +92,22 @@ export function ContractCard({ contract }: { contract: Contract }) {
         </ThemedText>
         <ThemedText>{formatTimestamp(contract.createdAt)}</ThemedText>
       </View>
+
+      {contract.status === 'PENDING' && (
+        <View style={styles.actionsContainer}>
+          <TouchableOpacity onPress={onEdit} style={styles.editButton}>
+            <ThemedText style={styles.editButtonText}>Editar</ThemedText>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={onDelete} style={styles.deleteButton}>
+            <ThemedText style={styles.deleteButtonText}>Excluir</ThemedText>
+          </TouchableOpacity>
+        </View>
+      )}
     </ThemedView>
   );
 }
+
+import { TouchableOpacity } from 'react-native';
 
 const styles = StyleSheet.create({
   card: {
@@ -103,5 +141,41 @@ const styles = StyleSheet.create({
   },
   label: {
     color: '#8a9bad',
+  },
+  routeText: {
+    maxWidth: '65%',
+  },
+  actionsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginTop: 15,
+    borderTopWidth: 1,
+    borderTopColor: '#2a2a2a',
+    paddingTop: 15,
+    gap: 10,
+  },
+  editButton: {
+    backgroundColor: '#1a1a1a',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#6C28FE',
+  },
+  editButtonText: {
+    color: '#6C28FE',
+    fontWeight: 'bold',
+  },
+  deleteButton: {
+    backgroundColor: '#ef444420',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ef4444',
+  },
+  deleteButtonText: {
+    color: '#ef4444',
+    fontWeight: 'bold',
   },
 });

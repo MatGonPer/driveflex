@@ -1,10 +1,19 @@
 import {Tabs} from 'expo-router';
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {Platform} from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
 import {HapticTab} from '@/components/haptic-tab';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function TabLayout() {
+  const [isDriver, setIsDriver] = useState(false);
+
+  useEffect(() => {
+    AsyncStorage.getItem('role').then(role => {
+      setIsDriver(role === 'DRIVER');
+    });
+  }, []);
+
   return (
     <Tabs
       screenOptions={{
@@ -83,6 +92,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="contratosPendentes"
         options={{
+          href: isDriver ? null : '/contratosPendentes',
           title: 'Contratos',
           tabBarIcon: ({color, focused}) => (
             <Ionicons

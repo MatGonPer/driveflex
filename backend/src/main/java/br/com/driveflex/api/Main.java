@@ -34,6 +34,7 @@ public class Main {
         // The handler itself will parse the {id} from the request URI
         server.createContext("/api/users/", new UserDeleteHandler()); 
         server.createContext("/api/contracts/pending", new PendingContractsHandler());
+        server.createContext("/api/contracts/", new ContractManageHandler());
 
 
         server.setExecutor(null);

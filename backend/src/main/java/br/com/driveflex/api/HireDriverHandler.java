@@ -63,28 +63,27 @@ public class HireDriverHandler implements HttpHandler {
         UUID clientId = UUID.fromString(clientIdString);
 
         try {
-            // 1. Ler o corpo da requisição (JSON com driverId, startTime, endTime)
+            // 1. Ler o corpo da requisição
             InputStream is = exchange.getRequestBody();
             String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
             JsonObject json = gson.fromJson(body, JsonObject.class);
 
-            UUID driverId = UUID.fromString(json.get("driverId").getAsString());
+            String vehicleCategory = json.get("vehicleCategory").getAsString();
+            String origin = json.has("origin") ? json.get("origin").getAsString() : "";
+            String destination = json.has("destination") ? json.get("destination").getAsString() : "";
+            String passengerName = json.has("passengerName") ? json.get("passengerName").getAsString() : "";
+            
             LocalDateTime startTime = LocalDateTime.parse(json.get("startTime").getAsString());
             LocalDateTime endTime = null; // Opcional
             if (json.has("endTime") && !json.get("endTime").isJsonNull()) {
                 endTime = LocalDateTime.parse(json.get("endTime").getAsString());
             }
 
-            // 2. Validar existêcia e papéis (roles) de cliente e motorista
+            // 2. Validar existêcia e papéis (roles) de cliente
             Optional<User> clientOpt = userRepository.findById(clientId); // Precisamos de findById no UserRepository
-            Optional<User> driverOpt = userRepository.findById(driverId);
 
             if (clientOpt.isEmpty() || !clientOpt.get().getRole().equalsIgnoreCase("USER")) {
                 sendResponse(exchange, 403, "{\"error\": \"Cliente não encontrado ou sem permissão.\"}");
-                return;
-            }
-            if (driverOpt.isEmpty() || !driverOpt.get().getRole().equalsIgnoreCase("DRIVER")) {
-                sendResponse(exchange, 400, "{\"error\": \"Motorista não encontrado ou sem permissão para ser contratado.\"}");
                 return;
             }
 
@@ -92,7 +91,11 @@ public class HireDriverHandler implements HttpHandler {
             Contract newContract = new Contract();
             newContract.setId(UUID.randomUUID());
             newContract.setClientId(clientId);
-            newContract.setDriverId(driverId);
+            newContract.setDriverId(null);
+            newContract.setVehicleCategory(vehicleCategory);
+            newContract.setOrigin(origin);
+            newContract.setDestination(destination);
+            newContract.setPassengerName(passengerName);
             newContract.setStatus("PENDING"); // Status inicial
             newContract.setStartTime(startTime);
             newContract.setEndTime(endTime);

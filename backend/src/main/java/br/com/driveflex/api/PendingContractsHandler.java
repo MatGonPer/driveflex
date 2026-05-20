@@ -27,7 +27,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Handler responsável por listar os contratos pendentes de um motorista.
+ * Handler responsável por listar os contratos pendentes de um cliente.
  * Rota esperada: GET /api/contracts/pending
  */
 public class PendingContractsHandler implements HttpHandler {
@@ -73,24 +73,24 @@ public class PendingContractsHandler implements HttpHandler {
             return;
         }
         
-        UUID driverId;
+        UUID clientId;
         try {
-            driverId = UUID.fromString(subjectIdString);
+            clientId = UUID.fromString(subjectIdString);
         } catch (IllegalArgumentException e) {
              sendResponse(exchange, 400, "{\"error\": \"ID do usuário inválido no token.\"}");
              return;
         }
 
         try {
-            // 3. Validar se o usuário autenticado tem papel (role) de motorista
-            Optional<User> driverOpt = userRepository.findById(driverId);
-            if (driverOpt.isEmpty() || !driverOpt.get().getRole().equalsIgnoreCase("DRIVER")) {
-                sendResponse(exchange, 403, "{\"error\": \"Acesso negado. Apenas motoristas podem visualizar contratos pendentes.\"}");
+            // 3. Validar se o usuário autenticado tem papel (role) de cliente (USER)
+            Optional<User> clientOpt = userRepository.findById(clientId);
+            if (clientOpt.isEmpty() || !clientOpt.get().getRole().equalsIgnoreCase("USER")) {
+                sendResponse(exchange, 403, "{\"error\": \"Acesso negado. Apenas clientes podem visualizar seus contratos pendentes.\"}");
                 return;
             }
 
             // 4. Buscar contratos pendentes utilizando o repositório
-            List<Contract> pendingContracts = contractRepository.findPendingByDriverId(driverId);
+            List<Contract> pendingContracts = contractRepository.findPendingByClientId(clientId);
 
             // 5. Converter para JSON e retornar Status 200
             String jsonResponse = gson.toJson(pendingContracts);

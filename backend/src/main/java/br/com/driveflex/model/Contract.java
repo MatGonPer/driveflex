@@ -17,6 +17,14 @@ public class Contract {
     private LocalDateTime endTime; // Pode ser nulo se o contrato não tiver um fim definido ainda
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    
+    private String clientName;
+    private String driverName;
+    private String vehicleCategory;
+    
+    private String origin;
+    private String destination;
+    private String passengerName;
 
     public Contract() {}
 
@@ -58,6 +66,24 @@ public class Contract {
 
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    public String getClientName() { return clientName; }
+    public void setClientName(String clientName) { this.clientName = clientName; }
+
+    public String getDriverName() { return driverName; }
+    public void setDriverName(String driverName) { this.driverName = driverName; }
+
+    public String getVehicleCategory() { return vehicleCategory; }
+    public void setVehicleCategory(String vehicleCategory) { this.vehicleCategory = vehicleCategory; }
+
+    public String getOrigin() { return origin; }
+    public void setOrigin(String origin) { this.origin = origin; }
+
+    public String getDestination() { return destination; }
+    public void setDestination(String destination) { this.destination = destination; }
+
+    public String getPassengerName() { return passengerName; }
+    public void setPassengerName(String passengerName) { this.passengerName = passengerName; }
 
     @Override
     public String toString() {

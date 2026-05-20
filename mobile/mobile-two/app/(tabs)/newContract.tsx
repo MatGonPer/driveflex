@@ -13,6 +13,8 @@ import {Ionicons} from '@expo/vector-icons';
 import {useRouter} from 'expo-router';
 import {LinearGradient} from 'expo-linear-gradient';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import api from '@/src/services/api';
 
 /**
  * Define o formato dos dados para evitar erros e facilitar
@@ -84,22 +86,65 @@ export default function NewContractScreen() {
    * Futura conexão como banco de dados futuramente.
    */
   const handleSubmit = async () => {
-    const payload = {
-      passenger,
-      vehicleType,
-      route: {origin, destination},
-      schedule: {pickupTime, returnTime, days: selectedDays},
-      status: 'pending',
-    };
+    try {
+      const token = await AsyncStorage.getItem('token');
+      if (!token) {
+        Alert.alert('Erro', 'Sessão expirada. Faça login novamente.');
+        return;
+      }
 
-    console.log('Integrando com API (Enviando JSON):', payload);
+      const formatInputTime = (timeStr: string) => {
+        if (!timeStr) return '';
+        const parts = timeStr.split(':');
+        if (parts.length >= 2) {
+          return `${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}`;
+        }
+        return timeStr;
+      };
 
-    Alert.alert('Solicitação Criada', 'Aguardando confirmação do motorista.');
+      const buildUtcString = (timeStr: string) => {
+        if (!timeStr) return null;
+        const formatted = formatInputTime(timeStr);
+        const [hours, minutes] = formatted.split(':').map(Number);
+        const d = new Date();
+        d.setHours(hours, minutes, 0, 0);
+        return d.toISOString().substring(0, 19);
+      };
 
-    // Reseta o formulário e volta para a Home
-    setCurrentStep(1);
-    setPassenger('');
-    router.replace('/');
+      const startTime = buildUtcString(pickupTime);
+      const endTime = buildUtcString(returnTime);
+
+      const payload = {
+        vehicleCategory: vehicleType,
+        origin: origin,
+        destination: destination,
+        passengerName: passenger,
+        startTime: startTime,
+        endTime: endTime,
+      };
+
+      console.log('Integrando com API (Enviando JSON):', payload);
+
+      await api.post('/api/contracts/hire', payload, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (Platform.OS === 'web') {
+        window.alert('Solicitação Criada: Aguardando confirmação do motorista.');
+      } else {
+        Alert.alert('Solicitação Criada', 'Aguardando confirmação do motorista.');
+      }
+
+      // Reseta o formulário e volta para a Home
+      setCurrentStep(1);
+      setPassenger('');
+      router.replace('/');
+    } catch (error: any) {
+      console.log('Erro ao criar contrato:', error.response?.data || error.message);
+      Alert.alert('Erro', 'Falha ao criar o contrato. Tente novamente.');
+    }
   };
 
   const canProceed = () => {
