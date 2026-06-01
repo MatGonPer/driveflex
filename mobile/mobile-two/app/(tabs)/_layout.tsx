@@ -3,8 +3,12 @@ import React from 'react';
 import {Platform} from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
 import {HapticTab} from '@/components/haptic-tab';
+import {useAuth} from '@/context/AuthContext';
 
 export default function TabLayout() {
+  const {role} = useAuth();
+  const isDriver = role === 'DRIVER';
+
   return (
     <Tabs
       screenOptions={{
@@ -34,7 +38,24 @@ export default function TabLayout() {
         }}
       />
 
-      {/* 2. NOVO */}
+      {/* 2. PAINEL DO MOTORISTA - Apenas para motoristas */}
+      {isDriver && (
+        <Tabs.Screen
+          name="driver-dashboard"
+          options={{
+            title: 'Motorista',
+            tabBarIcon: ({color, focused}) => (
+              <Ionicons
+                name={focused ? 'car' : 'car-outline'}
+                size={24}
+                color={color}
+              />
+            ),
+          }}
+        />
+      )}
+
+      {/* 3. NOVO */}
       <Tabs.Screen
         name="newContract"
         options={{
@@ -49,7 +70,7 @@ export default function TabLayout() {
         }}
       />
 
-      {/* 3. HISTÓRICO */}
+      {/* 4. HISTÓRICO */}
       <Tabs.Screen
         name="history"
         options={{
@@ -64,7 +85,7 @@ export default function TabLayout() {
         }}
       />
 
-      {/* 4. PERFIL */}
+      {/* 5. PERFIL */}
       <Tabs.Screen
         name="profile"
         options={{
@@ -79,7 +100,7 @@ export default function TabLayout() {
         }}
       />
 
-      {/* 5. CONTRATOS PENDENTES */}
+      {/* 6. CONTRATOS PENDENTES */}
       <Tabs.Screen
         name="contratosPendentes"
         options={{

@@ -10,3 +10,13 @@ export interface Contract {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface ContractWithDetails extends Contract {
+  clientName?: string;
+  clientEmail?: string;
+  driverName?: string;
+  driverEmail?: string;
+  pickupLocation?: string;
+  dropoffLocation?: string;
+  estimatedFare?: number;
+}
