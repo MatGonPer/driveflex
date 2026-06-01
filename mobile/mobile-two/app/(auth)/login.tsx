@@ -33,8 +33,15 @@ export default function LoginScreen() {
       });
 
       const {token, role} = response.data;
+      
+      // Validar que é cliente (USER)
+      if (role !== 'USER') {
+        Alert.alert('Acesso Negado', 'Esta tela é apenas para clientes. Motoristas devem usar a tela de login para motoristas.');
+        return;
+      }
+      
       await AsyncStorage.setItem('token', token);
-      await AsyncStorage.setItem('role', role);
+      await AsyncStorage.setItem('userRole', role);
       await AsyncStorage.setItem('email', email);
 
       router.replace('/(tabs)');

@@ -7,19 +7,40 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {useRouter} from 'expo-router';
 
 import api from '../../src/services/api';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const handleLogin = async () => {
     try {
+      setIsLoading(true);
       const response = await api.post('/auth/login', {email, senha});
+      
+      // Assumindo que o backend retorna { token, role }
+      const { token, role } = response.data;
+      
+      if (role !== 'DRIVER') {
+        Alert.alert('Acesso Negado', 'Esta tela é apenas para motoristas.');
+        return;
+      }
+      
+      // Salvar token e role
+      await AsyncStorage.setItem('token', token);
+      await AsyncStorage.setItem('userRole', role);
+      
       Alert.alert('Sucesso', 'Bem-vindo ao DriveFlex!');
+      router.replace('/(tabs)');
     } catch (error) {
       Alert.alert('Erro', 'Usuário ou senha inválidos');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -47,8 +68,14 @@ export default function LoginScreen() {
         secureTextEntry
       />
 
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Entrar</Text>
+      <TouchableOpacity 
+        style={[styles.button, isLoading && styles.buttonDisabled]} 
+        onPress={handleLogin}
+        disabled={isLoading}
+      >
+        <Text style={styles.buttonText}>
+          {isLoading ? 'Entrando...' : 'Entrar'}
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -78,6 +105,9 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 8,
     alignItems: 'center',
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
   buttonText: {color: '#fff', fontSize: 18, fontWeight: 'bold'},
 });

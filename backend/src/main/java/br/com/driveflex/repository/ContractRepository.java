@@ -127,4 +127,29 @@ public class ContractRepository {
         }
         return contracts;
     }
+
+    /**
+     * Atualiza o status de um contrato.
+     * @param contractId O ID do contrato.
+     * @param newStatus O novo status.
+     * @return true se a atualização foi bem-sucedida, false caso contrário.
+     */
+    public boolean updateStatus(UUID contractId, String newStatus) {
+        String sql = "UPDATE contracts SET status = ?, updated_at = ? WHERE id = ?;";
+
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, newStatus);
+            stmt.setTimestamp(2, Timestamp.valueOf(LocalDateTime.now()));
+            stmt.setObject(3, contractId);
+
+            int affectedRows = stmt.executeUpdate();
+            System.out.println("[ContractRepository] Status do contrato " + contractId + " atualizado para " + newStatus);
+            return affectedRows > 0;
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao atualizar status do contrato", e);
+        }
+    }
 }

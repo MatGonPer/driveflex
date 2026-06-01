@@ -1,25 +1,13 @@
 import {Redirect} from 'expo-router';
 import {useEffect, useState} from 'react';
 import {View, ActivityIndicator} from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import {useAuth} from '@/context/AuthContext';
 
 export default function Index() {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    const verificarToken = async () => {
-      try {
-        const token = await AsyncStorage.getItem('token');
-        setIsAuthenticated(!!token);
-      } catch {
-        setIsAuthenticated(false);
-      }
-    };
-    verificarToken();
-  }, []);
+  const {isAuthenticated, role, isLoading} = useAuth();
 
   // Enquanto verifica o token, mostra um loading
-  if (isAuthenticated === null) {
+  if (isLoading) {
     return (
       <View
         style={{
@@ -33,9 +21,21 @@ export default function Index() {
     );
   }
 
+  // Se não está autenticado, redireciona para login
   if (!isAuthenticated) {
     return <Redirect href="/(auth)/login" />;
   }
 
-  return <Redirect href="/(tabs)" />;
+  // Se é motorista, redireciona para dashboard do motorista
+  if (role === 'DRIVER') {
+    return <Redirect href="/driver-dashboard" />;
+  }
+
+  // Se é cliente (USER), redireciona para a home padrão
+  if (role === 'USER') {
+    return <Redirect href="/" />;
+  }
+
+  // Fallback (não deveria chegar aqui)
+  return <Redirect href="/(auth)/login" />;
 }

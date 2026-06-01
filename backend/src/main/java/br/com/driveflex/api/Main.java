@@ -34,6 +34,8 @@ public class Main {
         // The handler itself will parse the {id} from the request URI
         server.createContext("/api/users/", new UserDeleteHandler()); 
         server.createContext("/api/contracts/pending", new PendingContractsHandler());
+        server.createContext("/api/driver/profile", new DriverProfileHandler());
+        server.createContext("/api/contracts/", new AcceptContractHandler());
 
 
         server.setExecutor(null);
@@ -46,6 +48,8 @@ public class Main {
         System.out.println("[INFO] Rota registrada: GET /api/contracts/pending");
         System.out.println("[INFO] Rota registrada: GET /api/users (List all users)");
         System.out.println("[INFO] Rota registrada: DELETE /api/users/{id} (Delete user)");
+        System.out.println("[INFO] Rota registrada: GET /api/driver/profile (Driver profile)");
+        System.out.println("[INFO] Rota registrada: PATCH /api/contracts/{id}/accept (Accept contract)");
         System.out.println("[INFO] Pronto para receber conexões.");
 
         // Mantém o processo vivo no Docker
