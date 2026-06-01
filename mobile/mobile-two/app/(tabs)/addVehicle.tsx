@@ -16,6 +16,10 @@ import { Vehicle } from '@/types/driver';
 
 const VEHICLE_STORAGE_KEY = 'driverVehicle';
 
+export const options = {
+  title: 'Veiculo',
+};
+
 export default function AddVehicleScreen() {
   const router = useRouter();
   const [brand, setBrand] = useState('');
@@ -55,7 +59,7 @@ export default function AddVehicleScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.title}>Cadastrar Veículo</Text>
+          <Text style={styles.title}>Veiculo</Text>
           <Text style={styles.subtitle}>Adicione ou atualize o veículo do motorista.</Text>
         </View>
         <TouchableOpacity onPress={() => router.back()} style={styles.closeButton}>
