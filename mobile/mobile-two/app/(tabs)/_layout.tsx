@@ -55,6 +55,23 @@ export default function TabLayout() {
         />
       )}
 
+      {/* 2.b ADICIONAR VEÍCULO - Apenas para motoristas */}
+      {isDriver && (
+        <Tabs.Screen
+          name="addVehicle"
+          options={{
+            title: 'Veiculo',
+            tabBarIcon: ({color, focused}) => (
+              <Ionicons
+                name={focused ? 'car' : 'car-outline'}
+                size={24}
+                color={color}
+              />
+            ),
+          }}
+        />
+      )}
+
       {/* 3. NOVO */}
       <Tabs.Screen
         name="newContract"
