@@ -95,25 +95,59 @@ npx react-native run-android
 ---
 
 ## 5. Fundamentos Técnicos
-
 ### Comunicação de Rede
-
 Dentro do Docker, os serviços utilizam a rede `driveflex-network`. O Backend não expõe portas diretamente para fora; toda comunicação externa passa obrigatoriamente pelo Traefik.
-
 ### Conectividade Mobile (Emuladores)
-
 O Android utiliza o IP `10.0.2.2` para se comunicar com o `localhost` da máquina host. Portanto, no código do aplicativo, a URL base da API deve ser:
-
 ```
 http://10.0.2.2/
 ```
-
 ### Replicação de Dados
+Utilizamos imagens Bitnami PostgreSQL com replicação **Master-Slave**, garantindo resiliência e separação de responsabilidades entre leitura e escrita.
 
-Utilizamos imagens Bitnami PostgreSQL.
+A estratégia consiste em dois bancos de dados rodando em paralelo:
+- O **Master** (`postgres-master`, porta 5432) recebe todas as operações de escrita (INSERT, UPDATE, DELETE) e gera logs de replicação.
+- O **Slave** (`postgres-slave`, porta 5433) consome esses logs e mantém uma cópia idêntica para consultas de leitura.
 
-- O **Master** recebe transações e gera logs de replicação.
-- O **Slave** consome esses logs e mantém uma cópia idêntica para consultas de leitura.
+O PostgreSQL utiliza um mecanismo chamado **WAL (Write-Ahead Log)**: antes de aplicar qualquer alteração no banco, ele registra a operação em um arquivo de log. O Slave se conecta ao Master continuamente e consome esse WAL, reproduzindo as mesmas operações localmente — é assim que os dois bancos permanecem sincronizados.
+
+```
+Aplicação (backend)
+       │
+       ▼
+postgres-master (porta 5432)
+  - recebe INSERT / UPDATE / DELETE
+  - grava no WAL (Write-Ahead Log)
+       │
+       │  envia WAL continuamente
+       ▼
+postgres-slave (porta 5433)
+  - lê o WAL do master
+  - replica todas as mudanças
+  - disponível apenas para leitura
+```
+
+O container Master é definido com as seguintes variáveis de ambiente:
+```yaml
+POSTGRESQL_REPLICATION_MODE=master       # define o papel como master
+POSTGRESQL_REPLICATION_USER=repl_user    # cria um usuário dedicado à replicação
+POSTGRESQL_REPLICATION_PASSWORD=repl_senha
+```
+O container Slave aponta para o Master e usa o mesmo usuário de replicação:
+```yaml
+POSTGRESQL_REPLICATION_MODE=slave
+POSTGRESQL_MASTER_HOST=postgres-master   # referencia o master pelo nome do serviço Docker
+POSTGRESQL_MASTER_PORT_NUMBER=5432
+POSTGRESQL_REPLICATION_USER=repl_user
+POSTGRESQL_REPLICATION_PASSWORD=repl_senha
+```
+O campo `depends_on: postgres-master` garante que o Slave só sobe após o Master estar pronto. O hostname `postgres-master` funciona sem IP fixo porque o Docker Compose resolve nomes de serviços como DNS interno dentro da `driveflex-network`.
+
+| Benefício | Explicação |
+|---|---|
+| Alta disponibilidade | Se o Master cair, o Slave já possui uma cópia completa e atualizada dos dados |
+| Performance | Consultas pesadas de leitura podem ser direcionadas ao Slave, aliviando o Master |
+| Backup em tempo real | O Slave funciona como espelho contínuo, sem necessidade de backups manuais frequentes |
 
 ---
 
